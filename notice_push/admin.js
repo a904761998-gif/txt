@@ -15,14 +15,54 @@
   const toolBold = document.getElementById('tool-bold');
   const toolItalic = document.getElementById('tool-italic');
   const toolLink = document.getElementById('tool-link');
-  const imgPanel = document.getElementById('img-panel');
-  const imgSize = document.getElementById('img-size');
-  const imgSizeVal = document.getElementById('img-size-val');
+  const toolColor = document.getElementById('tool-color');
 
   const TOKEN_KEY = 'notice_admin_token_v1';
 
   function setErr(el, msg) {
     el.textContent = msg || '';
+  }
+
+  function autoLinkifyEditorHtml(html) {
+    const tpl = document.createElement('template');
+    tpl.innerHTML = String(html || '');
+    const re = /((https?:\/\/)[^\s<]+|www\.[^\s<]+)/gi;
+
+    (function walk(node) {
+      const kids = Array.from(node.childNodes);
+      kids.forEach((c) => {
+        if (c.nodeType === Node.TEXT_NODE) {
+          const text = c.nodeValue || '';
+          if (!re.test(text)) return;
+          re.lastIndex = 0;
+          const frag = document.createDocumentFragment();
+          let last = 0;
+          let m;
+          while ((m = re.exec(text))) {
+            const before = text.slice(last, m.index);
+            if (before) frag.appendChild(document.createTextNode(before));
+            const raw = m[1];
+            const href = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+            const a = document.createElement('a');
+            a.href = href;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.textContent = raw;
+            frag.appendChild(a);
+            last = m.index + raw.length;
+          }
+          const after = text.slice(last);
+          if (after) frag.appendChild(document.createTextNode(after));
+          c.replaceWith(frag);
+        } else if (c.nodeType === Node.ELEMENT_NODE) {
+          const el = c;
+          if (el.tagName === 'A') return;
+          walk(el);
+        }
+      });
+    })(tpl.content);
+
+    return tpl.innerHTML;
   }
 
   function showToast(msg) {
@@ -108,6 +148,11 @@
     try { contentEl.focus(); } catch {}
   }
 
+  function execColor(hex) {
+    try { document.execCommand('foreColor', false, hex); } catch {}
+    try { contentEl.focus(); } catch {}
+  }
+
   function insertLink() {
     const url = prompt('请输入链接（以 http/https 开头）');
     if (!url) return;
@@ -128,33 +173,29 @@
     try { contentEl.focus(); } catch {}
   }
 
-  let selectedImg = null;
-
-  function selectImg(img) {
-    selectedImg = img;
-    if (!imgPanel || !imgSize || !imgSizeVal) return;
-    imgPanel.classList.toggle('hidden', !img);
-    if (!img) return;
-    const styleW = (img.style.width || '').trim();
-    const m = /^(\d+)%$/.exec(styleW);
-    const v = m ? Number(m[1]) : 80;
-    imgSize.value = String(v);
-    imgSizeVal.textContent = `${v}%`;
-  }
-
   function insertImageDataUrl(dataUrl) {
+    const wrap = document.createElement('span');
+    wrap.setAttribute('contenteditable', 'false');
+    wrap.tabIndex = 0;
+    wrap.style.display = 'inline-block';
+    wrap.style.width = '320px';
+    wrap.style.height = '220px';
+    wrap.style.resize = 'both';
+    wrap.style.overflow = 'hidden';
+    wrap.style.borderRadius = '12px';
+    wrap.style.border = '1px solid rgba(102,126,234,0.18)';
+    wrap.style.boxShadow = '0 10px 24px rgba(0,0,0,0.10)';
+    wrap.style.margin = '10px 0';
+    wrap.style.background = 'rgba(255,255,255,0.6)';
     const img = document.createElement('img');
     img.src = dataUrl;
     img.alt = 'image';
-    img.style.width = '80%';
-    img.style.height = 'auto';
-    img.addEventListener('click', () => selectImg(img));
+    wrap.appendChild(img);
     const br = document.createElement('div');
     br.innerHTML = '<br>';
-    contentEl.appendChild(img);
+    contentEl.appendChild(wrap);
     contentEl.appendChild(br);
-    selectImg(img);
-    contentEl.focus();
+    try { wrap.focus(); } catch {}
   }
 
   async function handlePaste(e) {
@@ -205,7 +246,7 @@
   async function doPublish() {
     setErr(publishError, '');
     const title = (titleEl.value || '').trim();
-    const content = (contentEl.innerHTML || '').trim();
+    const content = autoLinkifyEditorHtml((contentEl.innerHTML || '').trim());
     if (!title && !content) {
       setErr(publishError, '标题/内容至少填一个');
       return;
@@ -215,7 +256,6 @@
       await api('/api/publish', { method: 'POST', body: { title, content } });
       titleEl.value = '';
       contentEl.innerHTML = '';
-      selectImg(null);
       showToast('发送成功');
       await loadHistory();
     } catch (e) {
@@ -241,24 +281,16 @@
 
   if (contentEl) {
     contentEl.addEventListener('paste', handlePaste);
-    contentEl.addEventListener('click', (e) => {
-      const t = e.target;
-      if (t && t.tagName === 'IMG') selectImg(t);
-    });
   }
 
   if (toolBold) toolBold.addEventListener('click', () => exec('bold'));
   if (toolItalic) toolItalic.addEventListener('click', () => exec('italic'));
   if (toolLink) toolLink.addEventListener('click', insertLink);
 
-  if (imgSize && imgSizeVal) {
-    imgSize.addEventListener('input', () => {
-      const v = Number(imgSize.value || 80);
-      imgSizeVal.textContent = `${v}%`;
-      if (selectedImg) {
-        selectedImg.style.width = `${v}%`;
-        selectedImg.style.height = 'auto';
-      }
+  if (toolColor) {
+    toolColor.addEventListener('input', () => {
+      const v = String(toolColor.value || '#111827');
+      execColor(v.trim());
     });
   }
 

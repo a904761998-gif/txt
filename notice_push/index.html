@@ -39,17 +39,11 @@
             <button class="tbtn" id="tool-bold" type="button">加粗</button>
             <button class="tbtn" id="tool-italic" type="button">斜体</button>
             <button class="tbtn" id="tool-link" type="button">链接</button>
+            <input id="tool-color" class="color" type="color" value="#111827" aria-label="文字颜色" />
             <span class="sep"></span>
             <span class="tip">可直接粘贴图片 / 表情包</span>
           </div>
           <div id="content" class="editor" contenteditable="true" spellcheck="false" aria-label="公告内容"></div>
-          <div class="img-panel hidden" id="img-panel">
-            <div class="img-row">
-              <div class="img-label">图片大小</div>
-              <input id="img-size" type="range" min="10" max="100" value="80" />
-              <div id="img-size-val" class="img-val">80%</div>
-            </div>
-          </div>
         </div>
         <div class="row end">
           <button id="publish-btn" class="btn">发布</button>
