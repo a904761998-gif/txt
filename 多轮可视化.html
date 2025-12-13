@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>多轮对话渲染（左右结构）</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        display: flex;
+        height: 100vh;
+    }
+    /* 左侧输入区 */
+    .left {
+        flex: 1;
+        background-color: #fff;
+        padding: 20px;
+        border-right: 1px solid #ccc;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+    }
+    .left h2 {
+        margin-top: 0;
+    }
+    textarea {
+        flex: 1;
+        width: 100%;
+        font-family: monospace;
+        padding: 10px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        resize: none;
+    }
+    button {
+        margin-top: 10px;
+        padding: 8px 15px;
+        border: none;
+        background-color: #4CAF50;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #45a049;
+    }
+    /* 右侧渲染区 */
+    .right {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        box-sizing: border-box;
+    }
+    .dialogue-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .message {
+        display: flex;
+        margin: 10px 0;
+    }
+    .bubble {
+        padding: 10px;
+        border-radius: 15px;
+        max-width: 70%;
+        line-height: 1.4;
+        word-break: break-word;
+    }
+    .user {
+        justify-content: flex-start;
+    }
+    .user .bubble {
+        background-color: #d9f1ff;
+        border-bottom-left-radius: 5px;
+    }
+    .assistant {
+        justify-content: flex-end;
+    }
+    .assistant .bubble {
+        background-color: #ffffff;
+        border-bottom-right-radius: 5px;
+    }
+    .role-label {
+        font-size: 0.8em;
+        color: #777;
+        margin-bottom: 5px;
+    }
+    .image-container img {
+        max-width: 100%;
+        border-radius: 5px;
+        margin-top: 5px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 左侧输入区 -->
+    <div class="left">
+        <h2>输入 JSON 多轮对话</h2>
+        <textarea id="jsonInput" placeholder='粘贴 JSON，例如：[{"role":"prompt","text":"你好"},{"role":"response","text":"你好啊"}]'></textarea>
+        <button onclick="renderDialogue()">渲染对话</button>
+    </div>
+
+    <!-- 右侧渲染区 -->
+    <div class="right">
+        <h2>渲染结果</h2>
+        <div id="dialogue" class="dialogue-container"></div>
+    </div>
+</div>
+
+<script>
+function renderDialogue() {
+    const container = document.getElementById('dialogue');
+    container.innerHTML = ''; // 清空上一次结果
+    let jsonText = document.getElementById('jsonInput').value.trim();
+
+    if (!jsonText) {
+        alert('请粘贴 JSON 数据');
+        return;
+    }
+
+    let data;
+    try {
+        data = JSON.parse(jsonText);
+    } catch (e) {
+        alert('JSON 格式不正确');
+        return;
+    }
+
+    if (!Array.isArray(data)) {
+        alert('JSON 数据必须是数组格式');
+        return;
+    }
+
+    data.forEach(item => {
+        let msgDiv = document.createElement('div');
+        msgDiv.classList.add('message');
+        msgDiv.classList.add(item.role === 'prompt' ? 'user' : 'assistant');
+
+        let bubble = document.createElement('div');
+        bubble.classList.add('bubble');
+
+        // 角色标签
+        let role = document.createElement('div');
+        role.classList.add('role-label');
+        role.textContent = item.role === 'prompt' ? '用户' : '助理';
+        bubble.appendChild(role);
+
+        // 文本
+        if (item.text) {
+            let textElem = document.createElement('div');
+            textElem.innerHTML = item.text.replace(/\n/g, '<br>');
+            bubble.appendChild(textElem);
+        }
+
+        // 图片
+        if (item.image_url) {
+            let imgContainer = document.createElement('div');
+            imgContainer.classList.add('image-container');
+            let img = document.createElement('img');
+            img.src = item.image_url;
+            img.alt = "图片";
+            imgContainer.appendChild(img);
+            bubble.appendChild(imgContainer);
+        }
+
+        msgDiv.appendChild(bubble);
+        container.appendChild(msgDiv);
+    });
+}
+</script>
+
+</body>
+</html>

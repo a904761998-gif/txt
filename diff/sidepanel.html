@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div id="notification-box">
+    <div class="icon">❤️</div>
+    <p>文本内容一致</p>
+  </div>
+  <div class="container">
+    <div class="column">
+      <div class="header">
+        <h3>原始文本 (左)</h3>
+        <button id="copy-left-btn" class="copy-btn">复制</button>
+      </div>
+      <div id="left-text" class="text-input-area" contenteditable="true" spellcheck="false"></div>
+    </div>
+
+    <div class="column">
+      <div class="header">
+        <h3>对比文本 (右)</h3>
+        <button id="copy-right-btn" class="copy-btn">复制</button>
+      </div>
+      <div id="right-text" class="text-input-area" contenteditable="true" spellcheck="false"></div>
+    </div>
+  </div>
+  
+  <!-- 搜索控制面板 -->
+  <div id="search-panel" class="search-panel">
+    <div class="search-info">
+      <span id="search-position">1</span>/<span id="search-total">0</span>
+    </div>
+    <div class="search-buttons">
+      <button id="prev-match" class="nav-btn">↑</button>
+      <button id="next-match" class="nav-btn">↓</button>
+      <button id="close-search" class="close-btn">×</button>
+    </div>
+  </div>
+  <footer class="legend-footer">
+    <div class="legend-group">
+      <div class="legend-item">
+        <span class="legend-swatch swatch-removed"></span>左侧差异 (移除)
+      </div>
+      <div class="legend-item">
+        <span class="legend-swatch swatch-added"></span>右侧差异 (新增)
+      </div>
+    </div>
+    <div id="search-status"></div>
+  </footer>
+  <script src="diff.min.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

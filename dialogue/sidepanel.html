@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>多轮对话可视化</title>
+<link rel="stylesheet" href="sidepanel.css">
+<script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+<script>
+// 确保marked正确初始化
+if (typeof marked !== 'undefined') {
+  marked.setOptions({
+    gfm: true,
+    breaks: true,
+    smartypants: true
+  });
+}
+</script>
+</head>
+<body>
+<div class="container">
+    <!-- 左侧输入区 -->
+    <div class="left">
+        <div class="header">
+            <h2>输入 JSON 多轮对话</h2>
+        </div>
+        <textarea id="jsonInput" placeholder='粘贴 JSON，例如：[{"role":"prompt","text":"你好"},{"role":"response","text":"你好啊"}]'></textarea>
+        <div class="actions">
+            <button id="renderBtn">渲染对话</button>
+            <button id="clearBtn">清空</button>
+            <button id="copyBtn">复制结果</button>
+        </div>
+    </div>
+
+    <!-- 右侧渲染区 -->
+    <div class="resizer" id="resizer"></div>
+    <div class="right">
+        <div class="header">
+            <h2>渲染结果</h2>
+        </div>
+        <div id="dialogue" class="dialogue-container"></div>
+    </div>
+</div>
+
+<script src="sidepanel.js"></script>
+</body>
+</html>

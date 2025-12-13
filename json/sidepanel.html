@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON 智能渲染</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div class="container">
+    <div class="pane pane-left">
+      <div class="header">
+        <span>JSON 源数据</span>
+        <span id="jsonStatus" class="status">等待输入</span>
+      </div>
+      <textarea id="jsonInput" placeholder="在此粘贴 JSON 内容..."></textarea>
+    </div>
+
+    <div id="resizer" class="resizer" aria-hidden="true"></div>
+
+    <div class="pane pane-right">
+      <div class="header">
+        <span>渲染结果</span>
+      </div>
+      <div id="renderArea" class="render-content" style="text-align: center; color: #9ca3af; margin-top: 3rem;">
+        请在左侧粘贴数据
+      </div>
+    </div>
+  </div>
+<script src="sidepanel.js" defer></script>
+</body>
+</html>

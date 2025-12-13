@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>公告发布</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="admin.js" defer></script>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" id="login-card">
+      <div class="h1">公告发布</div>
+      <div class="sub">请输入密码登录</div>
+      <div class="row">
+        <input id="password" class="input" type="password" placeholder="密码" autocomplete="current-password" />
+        <button id="login-btn" class="btn">登录</button>
+      </div>
+      <div id="login-error" class="error" aria-live="polite"></div>
+    </div>
+
+    <div class="card hidden" id="admin-card">
+      <div class="topline">
+        <div>
+          <div class="h1">发布新公告</div>
+          <div class="sub">发布后侧边栏会在打开时拉取最新公告</div>
+        </div>
+        <button id="logout-btn" class="btn btn-ghost">退出</button>
+      </div>
+
+      <div class="grid">
+        <div>
+          <div class="label">标题</div>
+          <input id="title" class="input" placeholder="例如：版本更新说明" />
+        </div>
+        <div>
+          <div class="label">内容</div>
+          <textarea id="content" class="textarea" placeholder="支持换行，建议写清楚变更点 / 注意事项"></textarea>
+        </div>
+        <div class="row end">
+          <button id="publish-btn" class="btn">发布</button>
+        </div>
+        <div id="publish-error" class="error" aria-live="polite"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="h1">历史记录</div>
+      <div class="sub">最近 50 条</div>
+      <div id="history" class="history" aria-live="polite"></div>
+    </div>
+  </div>
+</body>
+</html>

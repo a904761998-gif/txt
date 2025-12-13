@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>侧边栏工具</title>
+  <link rel="stylesheet" href="index.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="index.js" defer></script>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 3c4.97 0 9 4.03 9 9 0 3.87-2.43 7.17-5.85 8.44.51-1.43.79-2.98.79-4.59 0-5.52-2.69-9.53-8.74-10.85C8.77 3.38 10.33 3 12 3z" fill="#7BC6A4"/>
+        <path d="M6 21c6 0 10.5-4.5 10.5-10.5 0-1.18-.17-2.31-.5-3.37C13.58 7.99 10.5 12 10.5 16.5c0 1.62.28 3.16.79 4.59C9.93 21.54 8.02 22 6 22v-1z" fill="#BDE4D6"/>
+      </svg>
+      <span class="title">侧边栏工具</span>
+      <button id="theme-btn" class="icon-btn" title="切换主题" aria-label="切换主题">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M12 2a10 10 0 1 0 10 10A9.99 9.99 0 0 0 12 2Zm0 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4Zm6.5 6.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM8.5 11a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm7 4.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm-8.5 1a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" stroke="#667eea" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button id="notice-btn" class="icon-btn notice-btn" title="公告" aria-label="公告" hidden>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7Z" stroke="#667eea" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#667eea" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+    <select id="tool-select" class="select">
+      <option value="markdown" selected>Markdown</option>
+      <option value="diff">文本对比</option>
+      <option value="chat">大模型对话</option>
+      <option value="json">JSON 渲染</option>
+      <option value="dialogue">对话可视化</option>
+    </select>
+  </div>
+  <div id="theme-picker" class="theme-picker" aria-hidden="true"></div>
+  <div id="notice-pop" class="notice-pop" role="dialog" aria-modal="false" aria-hidden="true" hidden>
+    <div class="notice-card">
+      <div class="notice-head">
+        <div class="notice-title" id="notice-title"></div>
+        <button id="notice-close" class="notice-close" aria-label="关闭">×</button>
+      </div>
+      <div class="notice-meta" id="notice-meta"></div>
+      <div class="notice-body" id="notice-body"></div>
+      <div class="notice-actions">
+        <button id="notice-ok" class="notice-ok">知道了</button>
+      </div>
+    </div>
+  </div>
+  <div class="iframe-container">
+    <iframe id="markdown-frame" src="markdown/sidepanel.html" class="pane visible" title="Markdown 侧边栏" loading="eager"></iframe>
+    <iframe id="diff-frame" src="diff/sidepanel.html" class="pane" title="文本对比侧边栏" loading="lazy"></iframe>
+    <iframe id="chat-frame" src="chat/sidepanel.html" class="pane" title="大模型对话侧边栏" loading="lazy"></iframe>
+    <iframe id="json-frame" src="json/sidepanel.html" class="pane" title="JSON 渲染侧边栏" loading="lazy"></iframe>
+    <iframe id="dialogue-frame" src="dialogue/sidepanel.html" class="pane" title="对话可视化侧边栏" loading="lazy"></iframe>
+  </div>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Markdown 侧边栏</title>
+    <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+    <div class="container">
+        <div class="editor-pane">
+            <textarea id="markdown-input" placeholder="在这里输入Markdown..."></textarea>
+            <button id="copy-btn" title="复制全部内容">复制</button>
+        </div>
+        <div class="resizer" id="resizer"></div>
+        <div class="preview-pane">
+            <div id="markdown-output"></div>
+        </div>
+    </div>
+    <div class="footer">
+        <span class="count-item">字数: <span id="word-count">0</span></span>
+        <span class="count-item">字符数 (不计空格): <span id="char-count-no-space">0</span></span>
+        <span class="count-item">字符数 (计空格): <span id="char-count-with-space">0</span></span>
+        <button id="insert-image-btn" class="footer-btn">转换图片链接</button>
+    </div>
+    <div id="image-viewer" class="image-viewer">
+        <img id="viewer-img" src="" alt="Image Viewer">
+    </div>
+    <script src="marked.min.js" defer></script>
+    <script src="sidepanel.js" defer></script>
+</body>
+</html>
