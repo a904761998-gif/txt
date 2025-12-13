@@ -9,6 +9,7 @@
   const themePicker = document.getElementById('theme-picker');
   const noticeBtn = document.getElementById('notice-btn');
   const noticePop = document.getElementById('notice-pop');
+  const noticeDragHandle = document.getElementById('notice-drag-handle');
   const noticeTitle = document.getElementById('notice-title');
   const noticeMeta = document.getElementById('notice-meta');
   const noticeBody = document.getElementById('notice-body');
@@ -19,6 +20,7 @@
 
   const NOTICE_API_BASE = 'https://txt-ten-smoky.vercel.app';
   const NOTICE_READ_KEY = 'notice_read_id_v1';
+  const NOTICE_POS_KEY = 'notice_pop_pos_v1';
   let latestNotice = null;
 
   function setVisible(id) {
@@ -115,6 +117,62 @@
     noticePop.setAttribute('aria-hidden', on ? 'false' : 'true');
   }
 
+  function sanitizeHtml(raw) {
+    const s = String(raw || '');
+    const tpl = document.createElement('template');
+    tpl.innerHTML = s;
+    const allowedTags = new Set([
+      'A', 'BR', 'P', 'DIV', 'SPAN', 'STRONG', 'B', 'EM', 'I',
+      'UL', 'OL', 'LI', 'IMG', 'CODE', 'PRE'
+    ]);
+    const allowedAttrs = new Set(['href', 'target', 'rel', 'src', 'alt', 'style']);
+
+    (function walk(node) {
+      const children = Array.from(node.childNodes);
+      children.forEach((c) => {
+        if (c.nodeType === Node.ELEMENT_NODE) {
+          const el = c;
+          if (!allowedTags.has(el.tagName)) {
+            const frag = document.createDocumentFragment();
+            while (el.firstChild) frag.appendChild(el.firstChild);
+            el.replaceWith(frag);
+            walk(frag);
+            return;
+          }
+          Array.from(el.attributes).forEach((a) => {
+            if (!allowedAttrs.has(a.name)) el.removeAttribute(a.name);
+          });
+          if (el.tagName === 'A') {
+            const href = el.getAttribute('href') || '';
+            if (!/^https?:\/\//i.test(href)) el.removeAttribute('href');
+            el.setAttribute('target', '_blank');
+            el.setAttribute('rel', 'noopener noreferrer');
+          }
+          if (el.tagName === 'IMG') {
+            const src = el.getAttribute('src') || '';
+            if (!/^data:image\//i.test(src) && !/^https?:\/\//i.test(src)) {
+              el.remove();
+              return;
+            }
+            if (!el.getAttribute('alt')) el.setAttribute('alt', 'image');
+          }
+          walk(el);
+        }
+      });
+    })(tpl.content);
+
+    return tpl.innerHTML;
+  }
+
+  function normalizePlainText(s) {
+    const t = String(s || '');
+    return t
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>');
+  }
+
   function renderNotice(item) {
     latestNotice = item || null;
     if (!item) {
@@ -126,7 +184,10 @@
     noticeTitle.textContent = item.title || '公告';
     const t = fmtTime(item.created_at);
     noticeMeta.textContent = t ? `发布时间：${t}` : '';
-    noticeBody.textContent = item.content || '';
+    const raw = item.content || '';
+    const looksHtml = /<\s*(a|img|div|p|br|span|strong|em|ul|ol|li|pre|code)\b/i.test(raw);
+    const html = looksHtml ? sanitizeHtml(raw) : normalizePlainText(raw);
+    noticeBody.innerHTML = html;
 
     const readId = getReadId();
     const isUnread = String(item.id) && String(item.id) !== String(readId);
@@ -144,15 +205,140 @@
     }
   }
 
+  function animateMinimizeToBell() {
+    if (!noticeBtn || !noticePop || noticePop.hidden) return;
+    const card = noticePop.querySelector('.notice-card');
+    if (!card) return;
+    const from = card.getBoundingClientRect();
+    const to = noticeBtn.getBoundingClientRect();
+    const clone = card.cloneNode(true);
+    clone.style.position = 'fixed';
+    clone.style.left = `${from.left}px`;
+    clone.style.top = `${from.top}px`;
+    clone.style.width = `${from.width}px`;
+    clone.style.height = `${from.height}px`;
+    clone.style.margin = '0';
+    clone.style.zIndex = '9999';
+    clone.style.transform = 'translate(0,0) scale(1)';
+    clone.style.opacity = '1';
+    clone.style.transition = 'transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 420ms cubic-bezier(0.2, 0.8, 0.2, 1)';
+    document.body.appendChild(clone);
+
+    const dx = (to.left + to.width / 2) - (from.left + from.width / 2);
+    const dy = (to.top + to.height / 2) - (from.top + from.height / 2);
+
+    requestAnimationFrame(() => {
+      clone.style.transform = `translate(${dx}px, ${dy}px) scale(0.15)`;
+      clone.style.opacity = '0';
+    });
+
+    const done = () => {
+      clone.removeEventListener('transitionend', done);
+      clone.remove();
+    };
+    clone.addEventListener('transitionend', done);
+    setTimeout(() => { try { clone.remove(); } catch {} }, 900);
+  }
+
   function markReadAndMinimize() {
     if (!latestNotice || !latestNotice.id) {
       setPopOpen(false);
       return;
     }
+    animateMinimizeToBell();
     setReadId(latestNotice.id);
     setNoticePulse(false);
     setPopOpen(false);
     setNoticeBtnVisible(true);
+  }
+
+  function loadNoticePos() {
+    try {
+      const raw = localStorage.getItem(NOTICE_POS_KEY);
+      if (!raw) return null;
+      const v = JSON.parse(raw);
+      if (!v || typeof v.x !== 'number' || typeof v.y !== 'number') return null;
+      return v;
+    } catch {
+      return null;
+    }
+  }
+
+  function saveNoticePos(x, y) {
+    try { localStorage.setItem(NOTICE_POS_KEY, JSON.stringify({ x, y })); } catch {}
+  }
+
+  function applyNoticePos(pos) {
+    if (!noticePop || !pos) return;
+    noticePop.style.left = `${pos.x}px`;
+    noticePop.style.top = `${pos.y}px`;
+    noticePop.style.right = 'auto';
+  }
+
+  function clampNoticePos(x, y) {
+    const w = noticePop ? noticePop.offsetWidth : 420;
+    const h = noticePop ? noticePop.offsetHeight : 220;
+    const maxX = Math.max(0, window.innerWidth - w - 8);
+    const maxY = Math.max(0, window.innerHeight - h - 8);
+    return {
+      x: Math.max(8, Math.min(x, maxX)),
+      y: Math.max(8, Math.min(y, maxY))
+    };
+  }
+
+  function initDrag() {
+    if (!noticePop || !noticeDragHandle) return;
+    const saved = loadNoticePos();
+    if (saved) applyNoticePos(saved);
+
+    let dragging = false;
+    let startX = 0;
+    let startY = 0;
+    let baseX = 0;
+    let baseY = 0;
+
+    const onMove = (e) => {
+      if (!dragging) return;
+      const x = baseX + (e.clientX - startX);
+      const y = baseY + (e.clientY - startY);
+      const p = clampNoticePos(x, y);
+      noticePop.style.left = `${p.x}px`;
+      noticePop.style.top = `${p.y}px`;
+      noticePop.style.right = 'auto';
+    };
+
+    const onUp = () => {
+      if (!dragging) return;
+      dragging = false;
+      noticePop.classList.remove('dragging');
+      const rect = noticePop.getBoundingClientRect();
+      saveNoticePos(rect.left, rect.top);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+
+    noticeDragHandle.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      if (!noticePop || noticePop.hidden) return;
+      dragging = true;
+      noticePop.classList.add('dragging');
+      const rect = noticePop.getBoundingClientRect();
+      baseX = rect.left;
+      baseY = rect.top;
+      startX = e.clientX;
+      startY = e.clientY;
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+    });
+
+    window.addEventListener('resize', () => {
+      const rect = noticePop.getBoundingClientRect();
+      const p = clampNoticePos(rect.left, rect.top);
+      noticePop.style.left = `${p.x}px`;
+      noticePop.style.top = `${p.y}px`;
+      noticePop.style.right = 'auto';
+      saveNoticePos(p.x, p.y);
+    });
   }
 
   document.addEventListener('click', (e) => {
@@ -184,5 +370,6 @@
   if (noticeClose) noticeClose.addEventListener('click', () => setPopOpen(false));
 
   initTheme();
+  initDrag();
   fetchLatestNotice();
 })();

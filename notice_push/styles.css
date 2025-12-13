@@ -26,6 +26,36 @@ html, body { height: 100%; margin: 0; font-family: -apple-system, BlinkMacSystem
 
 .textarea:focus { border-color: rgba(102, 126, 234, 0.50); box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.14); }
 
+.editor-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+
+.tbtn { padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(102, 126, 234, 0.22); background: rgba(255,255,255,0.86); cursor: pointer; font-weight: 800; color: rgba(17,24,39,0.82); }
+
+.tbtn:hover { box-shadow: 0 8px 18px rgba(0,0,0,0.08); }
+
+.sep { width: 1px; height: 18px; background: rgba(102,126,234,0.18); margin: 0 2px; }
+
+.tip { font-size: 12px; font-weight: 800; color: rgba(17,24,39,0.55); }
+
+.editor { width: 100%; box-sizing: border-box; min-height: 200px; padding: 11px 12px; border-radius: 12px; border: 1px solid rgba(102, 126, 234, 0.22); background: rgba(255,255,255,0.92); outline: none; transition: 0.2s; font-size: 14px; white-space: normal; word-break: break-word; overflow: auto; }
+
+.editor:focus { border-color: rgba(102, 126, 234, 0.50); box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.14); }
+
+.editor img { max-width: 100%; height: auto; border-radius: 12px; display: block; margin: 10px 0; box-shadow: 0 10px 24px rgba(0,0,0,0.10); cursor: pointer; }
+
+.editor a { color: #4f46e5; font-weight: 900; text-decoration: none; }
+
+.editor a:hover { text-decoration: underline; }
+
+.img-panel { margin-top: 10px; padding: 10px; border-radius: 12px; border: 1px solid rgba(102,126,234,0.18); background: rgba(255,255,255,0.7); }
+
+.img-row { display: flex; align-items: center; gap: 10px; }
+
+.img-label { font-size: 12px; font-weight: 900; color: rgba(17,24,39,0.72); }
+
+.img-val { font-size: 12px; font-weight: 900; color: rgba(17,24,39,0.65); min-width: 42px; text-align: right; }
+
+.toast { position: fixed; right: 18px; bottom: 18px; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(76,175,80,0.35); background: rgba(236, 253, 245, 0.92); color: rgba(17,24,39,0.90); font-weight: 900; box-shadow: 0 12px 26px rgba(0,0,0,0.12); }
+
 .btn { padding: 11px 14px; border-radius: 12px; border: 1px solid rgba(102, 126, 234, 0.35); background: linear-gradient(135deg, rgba(102,126,234,0.96), rgba(156,39,176,0.92)); color: white; font-weight: 800; cursor: pointer; box-shadow: 0 8px 18px rgba(102,126,234,0.20); transition: 0.2s; }
 
 .btn:hover { transform: translateY(-1px); box-shadow: 0 12px 22px rgba(102,126,234,0.26); }

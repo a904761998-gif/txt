@@ -35,13 +35,29 @@
         </div>
         <div>
           <div class="label">内容</div>
-          <textarea id="content" class="textarea" placeholder="支持换行，建议写清楚变更点 / 注意事项"></textarea>
+          <div class="editor-toolbar">
+            <button class="tbtn" id="tool-bold" type="button">加粗</button>
+            <button class="tbtn" id="tool-italic" type="button">斜体</button>
+            <button class="tbtn" id="tool-link" type="button">链接</button>
+            <span class="sep"></span>
+            <span class="tip">可直接粘贴图片 / 表情包</span>
+          </div>
+          <div id="content" class="editor" contenteditable="true" spellcheck="false" aria-label="公告内容"></div>
+          <div class="img-panel hidden" id="img-panel">
+            <div class="img-row">
+              <div class="img-label">图片大小</div>
+              <input id="img-size" type="range" min="10" max="100" value="80" />
+              <div id="img-size-val" class="img-val">80%</div>
+            </div>
+          </div>
         </div>
         <div class="row end">
           <button id="publish-btn" class="btn">发布</button>
         </div>
         <div id="publish-error" class="error" aria-live="polite"></div>
       </div>
+
+      <div id="toast" class="toast" role="status" aria-live="polite" hidden>发送成功</div>
 
       <div class="divider"></div>
 

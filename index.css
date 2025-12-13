@@ -20,11 +20,11 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
 }
 
 .notice-pop {
-  position: absolute;
-  top: 72px;
+  position: fixed;
+  top: 84px;
   right: 24px;
   z-index: 30;
-  width: min(520px, calc(100vw - 48px));
+  width: min(420px, calc(100vw - 48px));
 }
 
 .notice-card {
@@ -39,6 +39,10 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
   transition: var(--transition);
 }
 
+.notice-pop.dragging .notice-card {
+  transition: none;
+}
+
 .notice-pop.open .notice-card {
   transform: translateY(0);
   opacity: 1;
@@ -51,6 +55,8 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
   gap: 10px;
   padding: 12px 12px 10px;
   border-bottom: 1px solid rgba(102, 126, 234, 0.16);
+  cursor: move;
+  user-select: none;
 }
 
 .notice-title {
@@ -79,10 +85,34 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
 
 .notice-body {
   padding: 10px 12px 12px;
-  white-space: pre-wrap;
+  white-space: normal;
+  word-break: break-word;
+  overflow: auto;
+  max-height: min(320px, calc(100vh - 220px));
   font-size: 13px;
   color: rgba(17, 24, 39, 0.78);
 }
+
+.notice-body a {
+  color: #4f46e5;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.notice-body a:hover {
+  text-decoration: underline;
+}
+
+.notice-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  display: block;
+  margin: 10px 0;
+}
+
+.notice-body p { margin: 6px 0; }
+.notice-body ul, .notice-body ol { margin: 6px 0 6px 18px; }
 
 .notice-actions {
   display: flex;
