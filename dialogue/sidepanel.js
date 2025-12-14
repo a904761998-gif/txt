@@ -1,4 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // CSP-safe marked init (no inline script)
+    try {
+        if (typeof marked !== 'undefined' && marked && typeof marked.setOptions === 'function') {
+            marked.setOptions({
+                gfm: true,
+                breaks: true,
+                smartypants: true
+            });
+        }
+    } catch {}
+
     // 调试信息：检查marked.js是否正确加载
     console.log('Checking marked.js availability:', typeof marked !== 'undefined' ? marked : 'Not loaded');
     

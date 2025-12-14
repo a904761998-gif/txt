@@ -91,74 +91,84 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderJSON(data) {
-        const html = renderJsonValue(data, 0);
-        outputEl.innerHTML = `<div class="json-container">${html}</div>`;
+        const lines = formatJsonLines(data, 0);
+        outputEl.innerHTML = `<pre class="json-pre">${lines.join('\n')}</pre>`;
     }
 
-    // 通用JSON值渲染函数
-    function renderJsonValue(value, depth = 0) {
+    function formatJsonLines(value, depth = 0) {
         const indent = '  '.repeat(depth);
-        
-        if (value === null) {
-            return `<span class="json-null">null</span>`;
-        }
-        
-        if (value === undefined) {
-            return `<span class="json-undefined">undefined</span>`;
-        }
-        
-        switch (typeof value) {
-            case 'string':
-                return `<span class="json-string">"${escapeHtml(value)}"</span>`;
-            case 'number':
-                return `<span class="json-number">${value}</span>`;
-            case 'boolean':
-                return `<span class="json-boolean">${value}</span>`;
-            case 'object':
-                if (Array.isArray(value)) {
-                    return renderJsonArray(value, depth);
-                } else {
-                    return renderJsonObject(value, depth);
+
+        if (value === null) return [`<span class="json-null">null</span>`];
+        if (value === undefined) return [`<span class="json-undefined">undefined</span>`];
+
+        const t = typeof value;
+        if (t === 'string') return [`<span class="json-string">"${escapeHtml(value)}"</span>`];
+        if (t === 'number') return [`<span class="json-number">${value}</span>`];
+        if (t === 'boolean') return [`<span class="json-boolean">${value}</span>`];
+        if (t !== 'object') return [`<span class="json-default">${escapeHtml(String(value))}</span>`];
+
+        if (Array.isArray(value)) {
+            if (value.length === 0) return ['<span class="json-punct">[</span><span class="json-punct">]</span>'];
+            const out = ['<span class="json-punct">[</span>'];
+            for (let i = 0; i < value.length; i++) {
+                const childLines = formatJsonLines(value[i], depth + 1);
+                for (let j = 0; j < childLines.length; j++) {
+                    let line = `${indent}  ${childLines[j]}`;
+                    if (i < value.length - 1 && j === childLines.length - 1) line += '<span class="json-punct">,</span>';
+                    out.push(line);
                 }
-            default:
-                return `<span class="json-default">${escapeHtml(String(value))}</span>`;
+            }
+            out.push(`${indent}<span class="json-punct">]</span>`);
+            return out;
         }
+
+        const keys = Object.keys(value);
+        if (keys.length === 0) return ['<span class="json-punct">{</span><span class="json-punct">}</span>'];
+
+        const maxKeyW = keys.reduce((m, k) => Math.max(m, displayWidth(k)), 0);
+
+        const out = ['<span class="json-punct">{</span>'];
+        for (let i = 0; i < keys.length; i++) {
+            const k = keys[i];
+            const v = value[k];
+            const childLines = formatJsonLines(v, depth + 1);
+
+            const pad = ' '.repeat(Math.max(0, maxKeyW - displayWidth(k)));
+
+            // First line for this property
+            out.push(`${indent}  <span class="json-key">"${escapeHtml(k)}"</span>${pad}<span class="json-punct">: </span>${childLines[0]}`);
+            // Remaining lines for multiline values
+            for (let j = 1; j < childLines.length; j++) {
+                out.push(`${indent}  ${childLines[j]}`);
+            }
+
+            // Add comma to the last line of this property if not last property
+            if (i < keys.length - 1) {
+                out[out.length - 1] = out[out.length - 1] + '<span class="json-punct">,</span>';
+            }
+        }
+        out.push(`${indent}<span class="json-punct">}</span>`);
+        return out;
     }
 
-    function renderJsonObject(obj, depth = 0) {
-        const indent = '  '.repeat(depth);
-        const keys = Object.keys(obj);
-        
-        if (keys.length === 0) {
-            return '{}';
+    function displayWidth(str) {
+        const s = String(str ?? '');
+        let w = 0;
+        for (const ch of s) {
+            const code = ch.codePointAt(0) || 0;
+            // Rough wide-char detection: CJK / fullwidth / emoji blocks treated as width 2.
+            if (
+                (code >= 0x1100 && code <= 0x115F) ||
+                (code >= 0x2E80 && code <= 0xA4CF) ||
+                (code >= 0xAC00 && code <= 0xD7A3) ||
+                (code >= 0xF900 && code <= 0xFAFF) ||
+                (code >= 0xFE10 && code <= 0xFE6F) ||
+                (code >= 0xFF00 && code <= 0xFF60) ||
+                (code >= 0x1F300 && code <= 0x1FAFF)
+            ) w += 2;
+            else w += 1;
         }
-        
-        const items = keys.map(key => {
-            const value = obj[key];
-            const valueHtml = renderJsonValue(value, depth + 1);
-            return `${indent}  <span class="json-key">"${escapeHtml(key)}"</span>: ${valueHtml}`;
-        });
-        
-        return `{
-${items.join(',\n')}
-${indent}}`;
-    }
-    
-    function renderJsonArray(arr, depth = 0) {
-        const indent = '  '.repeat(depth);
-        
-        if (arr.length === 0) {
-            return '[]';
-        }
-        
-        const items = arr.map(item => {
-            const valueHtml = renderJsonValue(item, depth + 1);
-            return `${indent}  ${valueHtml}`;
-        });
-        
-        return `[
-${items.join(',\n')}
-${indent}]`;
+        return w;
     }
 
     function escapeHtml(text) {

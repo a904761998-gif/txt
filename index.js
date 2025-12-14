@@ -15,6 +15,9 @@
   const noticeBody = document.getElementById('notice-body');
   const noticeOk = document.getElementById('notice-ok');
   const noticeClose = document.getElementById('notice-close');
+  const iframeContainer = document.querySelector('.iframe-container');
+  const imgLightbox = document.getElementById('img-lightbox');
+  const imgLightboxImg = document.getElementById('img-lightbox-img');
   let showing = 'markdown';
   let currentTheme = null;
 
@@ -43,7 +46,7 @@
     { id: 'sakura', label: '樱花' , preview: 'linear-gradient(135deg, #f48fb1, #ec407a)' },
     { id: 'cyberpunk', label: '赛博朋克' , preview: 'linear-gradient(135deg, #22d3ee, #f43f5e)' },
     { id: 'royal', label: '皇家' , preview: 'linear-gradient(135deg, #ffd700, #c59d5f)' },
-    { id: 'mint', label: '薄荷' , preview: 'linear-gradient(135deg, #66bb6a, #26a69a)' }
+    { id: 'mint', label: '薄荷（默认）' , preview: 'linear-gradient(135deg, #66bb6a, #26a69a)' }
   ];
 
   function applyTheme(id) {
@@ -78,8 +81,10 @@
 
   function initTheme() {
     buildThemePicker();
+    // 默认主题为薄荷；如你之前手动选择过其它主题，则继续使用你保存的主题
     const saved = (() => { try { return localStorage.getItem('sidebar_theme_v1'); } catch { return null; } })();
     if (saved && THEMES.some(t => t.id === saved)) applyTheme(saved);
+    else applyTheme('mint');
   }
 
   function fmtTime(ts) {
@@ -112,9 +117,35 @@
 
   function setPopOpen(on) {
     if (!noticePop) return;
+    if (!on) {
+      try {
+        const ae = document.activeElement;
+        if (ae && noticePop.contains(ae)) ae.blur();
+      } catch {}
+    }
+    if (on) {
+      // Reset any previous inline positioning so the popup won't drift and block the toolbar.
+      try { noticePop.style.left = ''; } catch {}
+      try { noticePop.style.top = ''; } catch {}
+      try { noticePop.style.right = ''; } catch {}
+      try { noticePop.style.transform = ''; } catch {}
+    }
     noticePop.hidden = !on;
     noticePop.classList.toggle('open', !!on);
     noticePop.setAttribute('aria-hidden', on ? 'false' : 'true');
+  }
+
+  function centerNoticeInContainer() {
+    if (!noticePop) return;
+    const c = iframeContainer || document.body;
+    const rect = c.getBoundingClientRect();
+    const w = noticePop.offsetWidth || 320;
+    const h = noticePop.offsetHeight || 320;
+    const x = rect.left + (rect.width - w) / 2;
+    const y = rect.top + (rect.height - h) / 2;
+    noticePop.style.left = `${Math.round(x)}px`;
+    noticePop.style.top = `${Math.round(y)}px`;
+    noticePop.style.right = 'auto';
   }
 
   function sanitizeHtml(raw) {
@@ -123,9 +154,9 @@
     tpl.innerHTML = s;
     const allowedTags = new Set([
       'A', 'BR', 'P', 'DIV', 'SPAN', 'STRONG', 'B', 'EM', 'I',
-      'UL', 'OL', 'LI', 'IMG', 'CODE', 'PRE'
+      'UL', 'OL', 'LI', 'IMG', 'CODE', 'PRE', 'FONT'
     ]);
-    const allowedAttrs = new Set(['href', 'target', 'rel', 'src', 'alt', 'style']);
+    const allowedAttrs = new Set(['href', 'target', 'rel', 'src', 'alt', 'color']);
 
     (function walk(node) {
       const children = Array.from(node.childNodes);
@@ -148,6 +179,12 @@
             el.setAttribute('target', '_blank');
             el.setAttribute('rel', 'noopener noreferrer');
           }
+          if (el.tagName === 'FONT') {
+            const c = el.getAttribute('color') || '';
+            if (c && !/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(c) && !/^(rgb|rgba)\(/i.test(c)) {
+              el.removeAttribute('color');
+            }
+          }
           if (el.tagName === 'IMG') {
             const src = el.getAttribute('src') || '';
             if (!/^data:image\//i.test(src) && !/^https?:\/\//i.test(src)) {
@@ -164,13 +201,24 @@
     return tpl.innerHTML;
   }
 
+  function linkifyHtml(html) {
+    const s = String(html || '');
+    const re = /((https?:\/\/)[^\s<]+|www\.[^\s<]+)/gi;
+    return s.replace(re, (m) => {
+      const href = /^https?:\/\//i.test(m) ? m : `https://${m}`;
+      const safe = href.replace(/"/g, '%22');
+      return `<a href="${safe}" target="_blank" rel="noopener noreferrer">${m}</a>`;
+    });
+  }
+
   function normalizePlainText(s) {
     const t = String(s || '');
-    return t
+    const html = t
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/\n/g, '<br>');
+    return linkifyHtml(html);
   }
 
   function renderNotice(item) {
@@ -270,74 +318,47 @@
 
   function applyNoticePos(pos) {
     if (!noticePop || !pos) return;
+    noticePop.style.transform = 'none';
     noticePop.style.left = `${pos.x}px`;
     noticePop.style.top = `${pos.y}px`;
     noticePop.style.right = 'auto';
   }
 
   function clampNoticePos(x, y) {
-    const w = noticePop ? noticePop.offsetWidth : 420;
-    const h = noticePop ? noticePop.offsetHeight : 220;
-    const maxX = Math.max(0, window.innerWidth - w - 8);
-    const maxY = Math.max(0, window.innerHeight - h - 8);
+    const w = noticePop ? noticePop.offsetWidth : 360;
+    const h = noticePop ? noticePop.offsetHeight : 420;
+    const pad = 12;
+    const maxX = Math.max(pad, window.innerWidth - w - pad);
+    const maxY = Math.max(pad, window.innerHeight - h - pad);
     return {
-      x: Math.max(8, Math.min(x, maxX)),
-      y: Math.max(8, Math.min(y, maxY))
+      x: Math.max(pad, Math.min(x, maxX)),
+      y: Math.max(pad, Math.min(y, maxY))
     };
   }
 
   function initDrag() {
-    if (!noticePop || !noticeDragHandle) return;
-    const saved = loadNoticePos();
-    if (saved) applyNoticePos(saved);
+    // Disabled: dragging/position persistence caused overlay & click-blocking regressions.
+    // We keep the handler in place so existing calls won't crash.
+  }
 
-    let dragging = false;
-    let startX = 0;
-    let startY = 0;
-    let baseX = 0;
-    let baseY = 0;
-
-    const onMove = (e) => {
-      if (!dragging) return;
-      const x = baseX + (e.clientX - startX);
-      const y = baseY + (e.clientY - startY);
-      const p = clampNoticePos(x, y);
-      noticePop.style.left = `${p.x}px`;
-      noticePop.style.top = `${p.y}px`;
-      noticePop.style.right = 'auto';
-    };
-
-    const onUp = () => {
-      if (!dragging) return;
-      dragging = false;
-      noticePop.classList.remove('dragging');
-      const rect = noticePop.getBoundingClientRect();
-      saveNoticePos(rect.left, rect.top);
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-    };
-
-    noticeDragHandle.addEventListener('mousedown', (e) => {
-      if (e.button !== 0) return;
-      if (!noticePop || noticePop.hidden) return;
-      dragging = true;
-      noticePop.classList.add('dragging');
-      const rect = noticePop.getBoundingClientRect();
-      baseX = rect.left;
-      baseY = rect.top;
-      startX = e.clientX;
-      startY = e.clientY;
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('mouseup', onUp);
+  if (imgLightbox && imgLightboxImg && noticeBody) {
+    noticeBody.addEventListener('click', (e) => {
+      const t = e.target;
+      if (!t || t.tagName !== 'IMG') return;
+      const src = t.getAttribute('src') || '';
+      if (!src) return;
+      imgLightboxImg.src = src;
+      imgLightbox.hidden = false;
+      imgLightbox.setAttribute('aria-hidden', 'false');
     });
 
-    window.addEventListener('resize', () => {
-      const rect = noticePop.getBoundingClientRect();
-      const p = clampNoticePos(rect.left, rect.top);
-      noticePop.style.left = `${p.x}px`;
-      noticePop.style.top = `${p.y}px`;
-      noticePop.style.right = 'auto';
-      saveNoticePos(p.x, p.y);
+    imgLightbox.addEventListener('click', (e) => {
+      const t = e.target;
+      if (t && t.dataset && t.dataset.close) {
+        imgLightbox.hidden = true;
+        imgLightbox.setAttribute('aria-hidden', 'true');
+        imgLightboxImg.removeAttribute('src');
+      }
     });
   }
 
@@ -370,6 +391,7 @@
   if (noticeClose) noticeClose.addEventListener('click', () => setPopOpen(false));
 
   initTheme();
+  // NOTE: Global scaling temporarily disabled to avoid interaction regressions.
   initDrag();
   fetchLatestNotice();
 })();

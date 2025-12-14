@@ -149,6 +149,16 @@ textarea {
   margin-top: 0 !important;
 }
 
+.json-pre {
+  margin: 0;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre;
+  tab-size: 2;
+  color: #2c3e50;
+}
+
 textarea:focus {
   border-color: #ff9800;
   background-color: #fff;
@@ -311,6 +321,11 @@ textarea:focus {
   color: #1565c0;
 }
 
+.json-punct {
+  color: rgba(17, 24, 39, 0.55);
+  font-weight: 600;
+}
+
 .json-boolean {
   color: #6a1b9a;
   font-weight: bold;
@@ -373,8 +388,8 @@ body.theme-sakura .container { --header-divider-color: rgba(233,30,99,0.25); }
 body.theme-cyberpunk { background: linear-gradient(135deg, #0f172a, #111827, #1f2937); color:#e5e7eb; }
 body.theme-cyberpunk .pane { background:#0b1020; }
 body.theme-cyberpunk .header { border-bottom: 0; color:#a78bfa; }
-body.theme-cyberpunk #jsonInput { border: 2px solid rgba(139,92,246,0.45); }
-body.theme-cyberpunk #renderArea { background: #0b1020; border-color: rgba(139,92,246,0.35); }
+body.theme-cyberpunk #jsonInput { border: 2px solid rgba(139,92,246,0.45); background:#ffffff; }
+body.theme-cyberpunk #renderArea { background: #ffffff; border-color: rgba(139,92,246,0.35); }
 body.theme-cyberpunk .resizer { background: linear-gradient(180deg, rgba(139,92,246,0.45), rgba(217,70,239,0.25)); }
 body.theme-cyberpunk .resizer:hover { background: linear-gradient(135deg, #8b5cf6, #d946ef); }
 body.theme-cyberpunk .status { color:#cbd5e1; }
@@ -386,8 +401,8 @@ body.theme-cyberpunk .container { --header-divider-color: rgba(139,92,246,0.35);
 body.theme-royal { background: linear-gradient(135deg, #0d0d0d, #121212, #1a1a1a); color:#f5f5dc; }
 body.theme-royal .pane { background:#121212; }
 body.theme-royal .header { border-bottom: 0; color:#ffd700; }
-body.theme-royal #jsonInput { border: 2px solid rgba(255,215,0,0.45); }
-body.theme-royal #renderArea { background: #121212; border-color: rgba(255,215,0,0.35); }
+body.theme-royal #jsonInput { border: 2px solid rgba(255,215,0,0.45); background:#ffffff; }
+body.theme-royal #renderArea { background: #ffffff; border-color: rgba(255,215,0,0.35); }
 body.theme-royal .resizer { background: linear-gradient(180deg, rgba(255,215,0,0.45), rgba(197,157,95,0.3)); }
 body.theme-royal .resizer:hover { background: linear-gradient(135deg, #ffd700, #c59d5f); }
 body.theme-royal ::-webkit-scrollbar-track { background: #0d0d0d; }
