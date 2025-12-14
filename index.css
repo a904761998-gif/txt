@@ -204,6 +204,7 @@ body {
   background: var(--bg-gradient);
   color: var(--text-primary); 
   position: relative;
+  container-type: inline-size;
 }
 
 body::before {
@@ -275,6 +276,8 @@ body::before {
   align-items: center; 
   gap: 14px;
   position: relative;
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .brand svg {
@@ -295,6 +298,8 @@ body::before {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: 0.3px;
+  white-space: nowrap;
+  line-height: 1;
 }
 
 .icon-btn {
@@ -338,6 +343,36 @@ body::before {
     linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
   background-repeat: no-repeat;
   background-position: right 18px center, 0 0;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+@container (max-width: 420px) {
+  .topbar {
+    padding: 0 clamp(10px, 3cqw, 20px);
+    height: clamp(56px, 18cqw, 64px);
+  }
+
+  .brand {
+    gap: clamp(8px, 2cqw, 14px);
+  }
+
+  .title {
+    font-size: clamp(12px, 4.2cqw, 18px);
+    letter-spacing: 0.1px;
+  }
+
+  .icon-btn {
+    width: clamp(34px, 10cqw, 44px);
+    height: clamp(34px, 10cqw, 44px);
+    border-radius: clamp(10px, 3cqw, 14px);
+  }
+
+  .select {
+    font-size: clamp(12px, 3.6cqw, 14px);
+    padding: clamp(8px, 2.6cqw, 12px) clamp(40px, 10cqw, 48px) clamp(8px, 2.6cqw, 12px) clamp(12px, 3.2cqw, 20px);
+    background-position: right clamp(12px, 3.4cqw, 18px) center, 0 0;
+  }
 }
 
 .select:hover {

@@ -11,7 +11,12 @@
     <div class="pane pane-left">
       <div class="header">
         <span>JSON 源数据</span>
-        <span id="jsonStatus" class="status">等待输入</span>
+        <div class="header-right">
+          <span id="jsonStatus" class="status">等待输入</span>
+          <div class="actionbar" role="toolbar" aria-label="JSON 工具栏">
+            <button id="btn-clear" class="action-btn" type="button">清空</button>
+          </div>
+        </div>
       </div>
       <textarea id="jsonInput" placeholder="在此粘贴 JSON 内容..."></textarea>
     </div>
@@ -21,8 +26,15 @@
     <div class="pane pane-right">
       <div class="header">
         <span>渲染结果</span>
+        <div class="header-right">
+          <div class="actionbar" role="toolbar" aria-label="结果操作">
+            <button id="btn-prettify" class="action-btn" type="button">格式化</button>
+            <button id="btn-minify" class="action-btn" type="button">压缩</button>
+            <button id="btn-copy" class="action-btn" type="button">复制结果</button>
+          </div>
+        </div>
       </div>
-      <div id="renderArea" class="render-content" style="text-align: center; color: #9ca3af; margin-top: 3rem;">
+      <div id="renderArea" class="render-content">
         请在左侧粘贴数据
       </div>
     </div>

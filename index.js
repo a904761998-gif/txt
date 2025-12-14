@@ -26,6 +26,19 @@
   const NOTICE_POS_KEY = 'notice_pop_pos_v1';
   let latestNotice = null;
 
+  function syncThemeToFrame(frameEl) {
+    if (!frameEl || !frameEl.contentWindow || !currentTheme) return;
+    try {
+      frameEl.contentWindow.postMessage({ type: 'set-theme', theme: `theme-${currentTheme}` }, '*');
+    } catch {
+    }
+  }
+
+  [markdown, diff, chat, json, dialogue].forEach((f) => {
+    if (!f) return;
+    f.addEventListener('load', () => syncThemeToFrame(f));
+  });
+
   function setVisible(id) {
     markdown.classList.toggle('visible', id === 'markdown');
     diff.classList.toggle('visible', id === 'diff');
@@ -55,11 +68,7 @@
     currentTheme = id;
     document.body.classList.add(cls);
     try { localStorage.setItem('sidebar_theme_v1', id); } catch {}
-    [markdown, diff, chat, json, dialogue].forEach((f) => {
-      if (f && f.contentWindow) {
-        f.contentWindow.postMessage({ type: 'set-theme', theme: cls }, '*');
-      }
-    });
+    [markdown, diff, chat, json, dialogue].forEach((f) => syncThemeToFrame(f));
     [...themePicker.querySelectorAll('.theme-card')].forEach((c) => c.classList.toggle('selected', c.dataset.id === id));
   }
 
