@@ -38,11 +38,14 @@
           <div class="editor-toolbar">
             <button class="tbtn" id="tool-bold" type="button">加粗</button>
             <button class="tbtn" id="tool-italic" type="button">斜体</button>
+            <button class="tbtn" id="tool-underline" type="button">下划线</button>
             <button class="tbtn" id="tool-link" type="button">链接</button>
             <input id="tool-color" class="color" type="color" value="#111827" aria-label="文字颜色" />
+            <button class="tbtn" id="tool-emoji" type="button" aria-expanded="false">emoji</button>
             <span class="sep"></span>
             <span class="tip">可直接粘贴图片 / 表情包</span>
           </div>
+          <div id="emoji-panel" class="emoji-panel" hidden aria-label="emoji 面板"></div>
           <div id="content" class="editor" contenteditable="true" spellcheck="false" aria-label="公告内容"></div>
         </div>
         <div class="row end">

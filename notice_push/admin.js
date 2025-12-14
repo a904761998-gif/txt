@@ -14,10 +14,52 @@
   const toast = document.getElementById('toast');
   const toolBold = document.getElementById('tool-bold');
   const toolItalic = document.getElementById('tool-italic');
+  const toolUnderline = document.getElementById('tool-underline');
   const toolLink = document.getElementById('tool-link');
   const toolColor = document.getElementById('tool-color');
+  const toolEmoji = document.getElementById('tool-emoji');
+  const emojiPanel = document.getElementById('emoji-panel');
 
   const TOKEN_KEY = 'notice_admin_token_v1';
+
+  let savedRange = null;
+
+  function saveSelection() {
+    try {
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0) return;
+      const r = sel.getRangeAt(0);
+      if (!contentEl || !contentEl.contains(r.commonAncestorContainer)) return;
+      savedRange = r.cloneRange();
+    } catch {}
+  }
+
+  function restoreSelection() {
+    try {
+      if (!savedRange) return;
+      const sel = window.getSelection();
+      if (!sel) return;
+      sel.removeAllRanges();
+      sel.addRange(savedRange);
+    } catch {}
+  }
+
+  function htmlToPlainText(html) {
+    const tpl = document.createElement('template');
+    tpl.innerHTML = String(html || '');
+    // Replace images with token
+    tpl.content.querySelectorAll('img').forEach((img) => {
+      const t = document.createTextNode('[图片]');
+      img.replaceWith(t);
+    });
+    // Convert block-ish elements to line breaks
+    tpl.content.querySelectorAll('br').forEach((br) => br.replaceWith(document.createTextNode('\n')));
+    tpl.content.querySelectorAll('p, div, li, pre').forEach((el) => {
+      el.appendChild(document.createTextNode('\n'));
+    });
+    const text = tpl.content.textContent || '';
+    return text.replace(/\n{3,}/g, '\n\n').trim();
+  }
 
   function setErr(el, msg) {
     el.textContent = msg || '';
@@ -130,27 +172,45 @@
       t.textContent = it.title || '(无标题)';
       const m = document.createElement('div');
       m.className = 'm';
-      const raw = it.content || '';
-      const looksHtml = /<\s*(a|img|div|p|br|span|strong|em|ul|ol|li|pre|code)\b/i.test(raw);
-      m.textContent = looksHtml ? '[富文本公告]' : raw;
+      const plain = htmlToPlainText(it.content || '');
+      m.textContent = plain ? (plain.length > 120 ? `${plain.slice(0, 120)}…` : plain) : '(空内容)';
       const d = document.createElement('div');
       d.className = 'd';
       d.textContent = `${fmt(it.created_at)}  |  id: ${it.id}`;
+
+      const detail = document.createElement('div');
+      detail.className = 'detail';
+      detail.hidden = true;
+      const rawBox = document.createElement('div');
+      rawBox.className = 'raw';
+      rawBox.textContent = plain || '';
+      detail.appendChild(rawBox);
+
       div.appendChild(t);
       div.appendChild(m);
       div.appendChild(d);
+      div.appendChild(detail);
+
+      div.addEventListener('click', () => {
+        detail.hidden = !detail.hidden;
+      });
+
       historyEl.appendChild(div);
     });
   }
 
   function exec(cmd) {
+    restoreSelection();
     try { document.execCommand(cmd); } catch {}
     try { contentEl.focus(); } catch {}
+    saveSelection();
   }
 
   function execColor(hex) {
+    restoreSelection();
     try { document.execCommand('foreColor', false, hex); } catch {}
     try { contentEl.focus(); } catch {}
+    saveSelection();
   }
 
   function insertLink() {
@@ -162,6 +222,7 @@
       return;
     }
     try {
+      restoreSelection();
       document.execCommand('createLink', false, u);
       const sel = window.getSelection();
       const a = sel && sel.anchorNode ? sel.anchorNode.parentElement : null;
@@ -171,6 +232,32 @@
       }
     } catch {}
     try { contentEl.focus(); } catch {}
+    saveSelection();
+  }
+
+  function insertTextAtCursor(text) {
+    restoreSelection();
+    try { document.execCommand('insertText', false, text); } catch {}
+    try { contentEl.focus(); } catch {}
+    saveSelection();
+  }
+
+  function initEmojiPanel() {
+    if (!emojiPanel || !toolEmoji) return;
+    const emojis = [
+      '😀','😁','😂','🤣','😊','😍','😘','😎','🤔','😭',
+      '😡','👍','👎','👏','🙏','🔥','🎉','✅','❌','⭐',
+      '📌','📣','🔔','⚠️','💡','🧩','🧠','📝','📷','🖼️'
+    ];
+    emojiPanel.innerHTML = '';
+    emojis.forEach((e) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'emoji-btn';
+      b.textContent = e;
+      b.addEventListener('click', () => insertTextAtCursor(e));
+      emojiPanel.appendChild(b);
+    });
   }
 
   function insertImageDataUrl(dataUrl) {
@@ -281,11 +368,37 @@
 
   if (contentEl) {
     contentEl.addEventListener('paste', handlePaste);
+    contentEl.addEventListener('keyup', saveSelection);
+    contentEl.addEventListener('mouseup', saveSelection);
+    contentEl.addEventListener('focus', saveSelection);
   }
+
+  if (toolColor) {
+    toolColor.addEventListener('mousedown', () => {
+      saveSelection();
+    });
+  }
+
+  // Prevent toolbar click from stealing focus/selection
+  [toolBold, toolItalic, toolUnderline, toolLink, toolEmoji].filter(Boolean).forEach((el) => {
+    el.addEventListener('mousedown', (e) => e.preventDefault());
+  });
 
   if (toolBold) toolBold.addEventListener('click', () => exec('bold'));
   if (toolItalic) toolItalic.addEventListener('click', () => exec('italic'));
+  if (toolUnderline) toolUnderline.addEventListener('click', () => exec('underline'));
   if (toolLink) toolLink.addEventListener('click', insertLink);
+
+  if (toolEmoji && emojiPanel) {
+    initEmojiPanel();
+    toolEmoji.addEventListener('click', () => {
+      const open = !emojiPanel.hidden;
+      emojiPanel.hidden = open;
+      toolEmoji.setAttribute('aria-expanded', open ? 'false' : 'true');
+      try { contentEl.focus(); } catch {}
+      saveSelection();
+    });
+  }
 
   if (toolColor) {
     toolColor.addEventListener('input', () => {
