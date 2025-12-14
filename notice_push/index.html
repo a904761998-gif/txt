@@ -20,12 +20,15 @@
     </div>
 
     <div class="card hidden" id="admin-card">
-      <div class="topline">
-        <div>
-          <div class="h1">发布新公告</div>
-          <div class="sub">发布后侧边栏会在打开时拉取最新公告</div>
+      <div class="appbar">
+        <div class="appbar-left">
+          <div class="h1">公告发布台</div>
+          <div class="sub">像聊天一样编辑，发布后用户打开侧边栏会拉取最新公告</div>
         </div>
-        <button id="logout-btn" class="btn btn-ghost">退出</button>
+        <div class="appbar-right">
+          <button id="history-btn" class="btn btn-ghost" type="button">历史</button>
+          <button id="logout-btn" class="btn btn-ghost" type="button">退出</button>
+        </div>
       </div>
 
       <div class="grid">
@@ -33,21 +36,33 @@
           <div class="label">标题</div>
           <input id="title" class="input" placeholder="例如：版本更新说明" />
         </div>
+
         <div>
           <div class="label">内容</div>
-          <div class="editor-toolbar">
-            <button class="tbtn" id="tool-bold" type="button">加粗</button>
-            <button class="tbtn" id="tool-italic" type="button">斜体</button>
-            <button class="tbtn" id="tool-underline" type="button">下划线</button>
-            <button class="tbtn" id="tool-link" type="button">链接</button>
-            <input id="tool-color" class="color" type="color" value="#111827" aria-label="文字颜色" />
-            <button class="tbtn" id="tool-emoji" type="button" aria-expanded="false">emoji</button>
-            <span class="sep"></span>
-            <span class="tip">可直接粘贴图片 / 表情包</span>
+          <div class="composer">
+            <div class="editor-toolbar" role="toolbar" aria-label="编辑工具">
+              <button class="tbtn" id="tool-bold" type="button" aria-label="加粗">B</button>
+              <button class="tbtn" id="tool-italic" type="button" aria-label="斜体">I</button>
+              <button class="tbtn" id="tool-underline" type="button" aria-label="下划线">U</button>
+              <button class="tbtn" id="tool-link" type="button" aria-label="插入链接">🔗</button>
+              <input id="tool-color" class="color" type="color" value="#111827" aria-label="文字颜色" />
+              <div class="emoji-wrap">
+                <button class="tbtn" id="tool-emoji" type="button" aria-expanded="false" aria-controls="emoji-pop">😊</button>
+                <div id="emoji-pop" class="emoji-pop" hidden>
+                  <div class="emoji-head">
+                    <input id="emoji-search" class="emoji-search" placeholder="搜索 emoji（例如：笑 / fire / heart）" />
+                    <div id="emoji-preview" class="emoji-preview" hidden></div>
+                  </div>
+                  <div id="emoji-panel" class="emoji-grid" aria-label="emoji 面板"></div>
+                </div>
+              </div>
+              <span class="sep"></span>
+              <span class="tip">支持粘贴图片 / GIF</span>
+            </div>
+            <div id="content" class="editor" contenteditable="true" spellcheck="false" aria-label="公告内容"></div>
           </div>
-          <div id="emoji-panel" class="emoji-panel" hidden aria-label="emoji 面板"></div>
-          <div id="content" class="editor" contenteditable="true" spellcheck="false" aria-label="公告内容"></div>
         </div>
+
         <div class="row end">
           <button id="publish-btn" class="btn">发布</button>
         </div>
@@ -55,11 +70,22 @@
       </div>
 
       <div id="toast" class="toast" role="status" aria-live="polite" hidden>发送成功</div>
+    </div>
+  </div>
 
-      <div class="divider"></div>
-
-      <div class="h1">历史记录</div>
-      <div class="sub">最近 50 条</div>
+  <div id="history-modal" class="modal" hidden aria-hidden="true">
+    <div class="modal-backdrop" data-close="1"></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-label="历史记录">
+      <div class="modal-head">
+        <div>
+          <div class="h1">历史记录</div>
+          <div class="sub">最近 50 条（点击卡片展开详情）</div>
+        </div>
+        <button id="history-close" class="btn btn-ghost" type="button">关闭</button>
+      </div>
+      <div class="modal-tools">
+        <input id="history-search" class="input" placeholder="搜索标题/内容" />
+      </div>
       <div id="history" class="history" aria-live="polite"></div>
     </div>
   </div>

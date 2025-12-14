@@ -18,7 +18,14 @@
   const toolLink = document.getElementById('tool-link');
   const toolColor = document.getElementById('tool-color');
   const toolEmoji = document.getElementById('tool-emoji');
+  const emojiPop = document.getElementById('emoji-pop');
   const emojiPanel = document.getElementById('emoji-panel');
+  const emojiSearch = document.getElementById('emoji-search');
+  const emojiPreview = document.getElementById('emoji-preview');
+  const historyBtn = document.getElementById('history-btn');
+  const historyModal = document.getElementById('history-modal');
+  const historyClose = document.getElementById('history-close');
+  const historySearch = document.getElementById('history-search');
 
   const TOKEN_KEY = 'notice_admin_token_v1';
 
@@ -199,6 +206,18 @@
     });
   }
 
+  function openHistory() {
+    if (!historyModal) return;
+    historyModal.hidden = false;
+    historyModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeHistory() {
+    if (!historyModal) return;
+    historyModal.hidden = true;
+    historyModal.setAttribute('aria-hidden', 'true');
+  }
+
   function exec(cmd) {
     restoreSelection();
     try { document.execCommand(cmd); } catch {}
@@ -244,20 +263,54 @@
 
   function initEmojiPanel() {
     if (!emojiPanel || !toolEmoji) return;
-    const emojis = [
-      '😀','😁','😂','🤣','😊','😍','😘','😎','🤔','😭',
-      '😡','👍','👎','👏','🙏','🔥','🎉','✅','❌','⭐',
-      '📌','📣','🔔','⚠️','💡','🧩','🧠','📝','📷','🖼️'
+    const items = [
+      { t: '😀', k: ['smile','happy','笑'] }, { t: '😁', k: ['grin','笑'] }, { t: '😂', k: ['joy','笑哭'] }, { t: '🤣', k: ['rofl','笑哭'] },
+      { t: '😊', k: ['blush','微笑'] }, { t: '😍', k: ['love','heart','爱'] }, { t: '😘', k: ['kiss','亲'] }, { t: '😎', k: ['cool','酷'] },
+      { t: '🤔', k: ['think','思考'] }, { t: '😭', k: ['cry','哭'] }, { t: '😡', k: ['angry','生气'] }, { t: '😴', k: ['sleep','困'] },
+      { t: '👍', k: ['ok','like','赞'] }, { t: '👎', k: ['dislike','踩'] }, { t: '👏', k: ['clap','鼓掌'] }, { t: '🙏', k: ['pray','谢谢'] },
+      { t: '🔥', k: ['fire','hot','火'] }, { t: '🎉', k: ['party','庆祝'] }, { t: '✅', k: ['check','正确'] }, { t: '❌', k: ['x','错误'] },
+      { t: '⭐', k: ['star','收藏'] }, { t: '⚠️', k: ['warn','警告'] }, { t: '💡', k: ['idea','灵感'] }, { t: '🧠', k: ['brain','思维'] },
+      { t: '📝', k: ['note','笔记'] }, { t: '📌', k: ['pin','置顶'] }, { t: '📣', k: ['announce','公告'] }, { t: '🔔', k: ['bell','通知'] },
+      { t: '📷', k: ['photo','图片'] }, { t: '🖼️', k: ['image','图片'] }, { t: '🧩', k: ['puzzle','模块'] }, { t: '🚀', k: ['rocket','上线'] },
+      { t: '🧪', k: ['test','测试'] }, { t: '🛠️', k: ['tool','工具'] }, { t: '🔧', k: ['fix','修复'] }, { t: '✨', k: ['sparkle','优化'] },
+      { t: '💬', k: ['chat','聊天'] }, { t: '📎', k: ['attach','附件'] }, { t: '📦', k: ['package','发布'] }, { t: '🧹', k: ['clean','清理'] },
+      { t: '🎯', k: ['target','目标'] }, { t: '📈', k: ['chart','增长'] }, { t: '📉', k: ['down','下降'] }, { t: '🧡', k: ['heart','爱'] },
+      { t: '💚', k: ['heart','爱'] }, { t: '💙', k: ['heart','爱'] }, { t: '💜', k: ['heart','爱'] }, { t: '🤝', k: ['handshake','合作'] },
+      { t: '👀', k: ['see','看'] }, { t: '🧑‍💻', k: ['dev','开发'] }, { t: '🧑‍🎨', k: ['design','设计'] }, { t: '🧑‍🚀', k: ['launch','上线'] }
     ];
-    emojiPanel.innerHTML = '';
-    emojis.forEach((e) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'emoji-btn';
-      b.textContent = e;
-      b.addEventListener('click', () => insertTextAtCursor(e));
-      emojiPanel.appendChild(b);
-    });
+
+    const render = (q) => {
+      const query = String(q || '').trim().toLowerCase();
+      emojiPanel.innerHTML = '';
+      const filtered = !query ? items : items.filter(i => i.k.some(k => String(k).toLowerCase().includes(query)) || i.t.includes(query));
+      filtered.forEach((it) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'emoji-btn';
+        b.textContent = it.t;
+        b.addEventListener('mouseenter', () => {
+          if (!emojiPreview) return;
+          emojiPreview.hidden = false;
+          emojiPreview.textContent = it.t;
+        });
+        b.addEventListener('mouseleave', () => {
+          if (!emojiPreview) return;
+          emojiPreview.hidden = true;
+        });
+        b.addEventListener('click', () => {
+          insertTextAtCursor(it.t);
+          if (emojiPop) emojiPop.hidden = true;
+          if (toolEmoji) toolEmoji.setAttribute('aria-expanded', 'false');
+        });
+        emojiPanel.appendChild(b);
+      });
+    };
+
+    render('');
+
+    if (emojiSearch) {
+      emojiSearch.addEventListener('input', () => render(emojiSearch.value));
+    }
   }
 
   function insertImageDataUrl(dataUrl) {
@@ -389,14 +442,59 @@
   if (toolUnderline) toolUnderline.addEventListener('click', () => exec('underline'));
   if (toolLink) toolLink.addEventListener('click', insertLink);
 
-  if (toolEmoji && emojiPanel) {
+  if (toolEmoji && emojiPop && emojiPanel) {
     initEmojiPanel();
     toolEmoji.addEventListener('click', () => {
-      const open = !emojiPanel.hidden;
-      emojiPanel.hidden = open;
+      const open = !emojiPop.hidden;
+      emojiPop.hidden = open;
       toolEmoji.setAttribute('aria-expanded', open ? 'false' : 'true');
       try { contentEl.focus(); } catch {}
       saveSelection();
+      if (!open && emojiSearch) {
+        emojiSearch.value = '';
+        emojiSearch.focus();
+        emojiSearch.dispatchEvent(new Event('input'));
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!emojiPop || emojiPop.hidden) return;
+      const path = e.composedPath();
+      if (path.includes(emojiPop) || path.includes(toolEmoji)) return;
+      emojiPop.hidden = true;
+      toolEmoji.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  if (historyBtn && historyModal) {
+    historyBtn.addEventListener('click', async () => {
+      openHistory();
+      try { await loadHistory(); } catch {}
+      if (historySearch) historySearch.value = '';
+    });
+  }
+
+  if (historyClose) historyClose.addEventListener('click', closeHistory);
+
+  if (historyModal) {
+    historyModal.addEventListener('click', (e) => {
+      const t = e.target;
+      if (t && t.dataset && t.dataset.close) closeHistory();
+    });
+  }
+
+  if (historySearch) {
+    historySearch.addEventListener('input', async () => {
+      try {
+        const data = await api('/api/list');
+        const q = String(historySearch.value || '').trim().toLowerCase();
+        const items = (data.items || []).filter((it) => {
+          const title = String(it.title || '').toLowerCase();
+          const plain = htmlToPlainText(it.content || '').toLowerCase();
+          return !q || title.includes(q) || plain.includes(q);
+        });
+        renderHistory(items);
+      } catch {}
     });
   }
 
